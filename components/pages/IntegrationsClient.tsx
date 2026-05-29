@@ -137,13 +137,12 @@ export function IntegrationsClient() {
 
     const el = gridRef.current
     const allCards = Array.from(el.querySelectorAll<HTMLElement>('.intg-card'))
-    const firedRef = { current: false }
 
     gsap.set(allCards, { opacity: 0, y: 18 })
 
-    const animate = () => {
-      if (firedRef.current) return
-      firedRef.current = true
+    // Use a timeout so React Strict Mode's double-invocation works cleanly:
+    // the first mount's timer is cancelled by cleanup, only the final mount fires.
+    const timer = setTimeout(() => {
       const visible = allCards.filter(c => !c.classList.contains('hide'))
       gsap.to(visible, {
         opacity: 1,
@@ -152,29 +151,12 @@ export function IntegrationsClient() {
         ease: 'power2.out',
         stagger: { each: 0.035, grid: 'auto', from: 'start' },
       })
-    }
+    }, 80)
 
-    // Fire immediately if already in view (covers most page-load cases)
-    if (el.getBoundingClientRect().top < window.innerHeight * 0.92) {
-      animate()
-      return
+    return () => {
+      clearTimeout(timer)
+      gsap.killTweensOf(allCards)
     }
-
-    // Otherwise observe scroll into view
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { animate(); obs.disconnect() } },
-      { threshold: 0.01 }
-    )
-    obs.observe(el)
-    const onScroll = () => {
-      if (el.getBoundingClientRect().top < window.innerHeight * 0.92) {
-        animate()
-        obs.disconnect()
-        window.removeEventListener('scroll', onScroll)
-      }
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => { obs.disconnect(); window.removeEventListener('scroll', onScroll) }
   }, [])
 
   /* ── magnetic request button ── */
