@@ -102,7 +102,7 @@ export function ProblemSection() {
         </Reveal>
 
         {/* Wrap in Reveal so the same tested clip-path wipe handles the entrance */}
-        <Reveal threshold={0.15}>
+        <Reveal threshold={0.92}>
           <div className="stat-grid">
             {STATS.map((card) => (
               <StatCard key={card.tag} card={card} />

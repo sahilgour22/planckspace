@@ -3,11 +3,10 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { flushSync } from 'react-dom'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Flip } from 'gsap/Flip'
 import { Reveal } from '@/components/ui/Reveal'
 
-gsap.registerPlugin(ScrollTrigger, Flip)
+gsap.registerPlugin(Flip)
 
 /* ============================================================
    DATA
@@ -132,33 +131,50 @@ export function IntegrationsClient() {
     }
   }, [])
 
-  /* ── card stagger entrance via ScrollTrigger ── */
+  /* ── card stagger entrance ── */
   useEffect(() => {
     if (!gridRef.current || reducedRef.current) return
 
-    const allCards = Array.from(
-      gridRef.current.querySelectorAll<HTMLElement>('.intg-card')
-    )
+    const el = gridRef.current
+    const allCards = Array.from(el.querySelectorAll<HTMLElement>('.intg-card'))
+    const firedRef = { current: false }
 
     gsap.set(allCards, { opacity: 0, y: 18 })
 
-    const trigger = ScrollTrigger.create({
-      trigger: gridRef.current,
-      start: 'top 82%',
-      once: true,
-      onEnter: () => {
-        const visible = allCards.filter(c => !c.classList.contains('hide'))
-        gsap.to(visible, {
-          opacity: 1,
-          y: 0,
-          duration: 0.55,
-          ease: 'power2.out',
-          stagger: { each: 0.035, grid: 'auto', from: 'start' },
-        })
-      },
-    })
+    const animate = () => {
+      if (firedRef.current) return
+      firedRef.current = true
+      const visible = allCards.filter(c => !c.classList.contains('hide'))
+      gsap.to(visible, {
+        opacity: 1,
+        y: 0,
+        duration: 0.55,
+        ease: 'power2.out',
+        stagger: { each: 0.035, grid: 'auto', from: 'start' },
+      })
+    }
 
-    return () => { trigger.kill() }
+    // Fire immediately if already in view (covers most page-load cases)
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.92) {
+      animate()
+      return
+    }
+
+    // Otherwise observe scroll into view
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { animate(); obs.disconnect() } },
+      { threshold: 0.01 }
+    )
+    obs.observe(el)
+    const onScroll = () => {
+      if (el.getBoundingClientRect().top < window.innerHeight * 0.92) {
+        animate()
+        obs.disconnect()
+        window.removeEventListener('scroll', onScroll)
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => { obs.disconnect(); window.removeEventListener('scroll', onScroll) }
   }, [])
 
   /* ── magnetic request button ── */

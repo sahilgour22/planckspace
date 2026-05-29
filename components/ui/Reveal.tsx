@@ -4,7 +4,7 @@ import { useEffect, useRef, ReactNode, ElementType, CSSProperties } from 'react'
 
 interface RevealProps {
   children: ReactNode
-  /** Fraction of viewport height at which reveal triggers (default 0.86) */
+  /** Fraction of viewport height at which reveal triggers (default 0.9) */
   threshold?: number
   /** Extra class names for the wrapper */
   className?: string
@@ -19,7 +19,7 @@ interface RevealProps {
  */
 export function Reveal({
   children,
-  threshold = 0.86,
+  threshold = 0.9,
   className = '',
   style,
   as: Tag = 'div',

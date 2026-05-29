@@ -28,10 +28,11 @@ export function HeroSection() {
   const ctaBtnRef  = useRef<HTMLAnchorElement>(null)
   const ctaWrapRef = useRef<HTMLSpanElement>(null)
 
-  const [spendVal,  setSpendVal]  = useState('$0')
-  const [wasteVal,  setWasteVal]  = useState('$0')
-  const [strikeOn,  setStrikeOn]  = useState(false)
-  const [email,     setEmail]     = useState('')
+  const [spendVal,    setSpendVal]    = useState('$0')
+  const [wasteVal,    setWasteVal]    = useState('$0')
+  const [strikeStruck, setStrikeStruck] = useState(false)
+  const [strikeOn,    setStrikeOn]    = useState(false)
+  const [email,       setEmail]       = useState('')
 
   /* ── on mount ── */
   useEffect(() => {
@@ -69,7 +70,9 @@ export function HeroSection() {
       countUp(setSpendVal, 34210, { dur: 1700 })
     }, 600)
     setTimeout(() => {
-      setStrikeOn(true)
+      setStrikeStruck(true)
+      // add .on one frame later so CSS transition fires from scaleX(0) → scaleX(1)
+      requestAnimationFrame(() => setStrikeOn(true))
       countUp(setWasteVal, 9840, { dur: 1200 })
     }, 2500)
   }, [])
@@ -158,7 +161,7 @@ export function HeroSection() {
           <div className="ledger" role="region" aria-label="Spend preview">
             <div className="ledger-row">
               <span className="ledger-key">monthly spend</span>
-              <span className={`ledger-val${strikeOn ? ' struck' : ''}`}>
+              <span className={`ledger-val${strikeStruck ? ' struck' : ''}${strikeOn ? ' on' : ''}`}>
                 {spendVal}
                 <span className="strike-line" aria-hidden="true" />
               </span>
